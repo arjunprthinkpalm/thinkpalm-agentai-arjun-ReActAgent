@@ -264,28 +264,6 @@ def unit_converter(query: str) -> str:
         return f"Error: {e}"
 
 
-# ── Tool 4: Email Sender (Mock) ─────────────────────────────────────────────
-
-def send_email(query: str) -> str:
-    """Send an email. 
-    Input format: 'recipient|subject|body'
-    Example: 'boss@company.com|Report|The work is done.'
-    """
-    try:
-        parts = query.split("|")
-        if len(parts) != 3:
-            return "Error: Invalid format. Use 'recipient|subject|body'."
-        
-        recipient, subject, body = parts
-        # This is a mock implementation. In a real scenario, you'd use smtplib or an API.
-        print(f"\n[MOCK EMAIL SENT]")
-        print(f"To: {recipient}")
-        print(f"Subject: {subject}")
-        print(f"Body: {body}\n")
-        
-        return f"Successfully sent email to {recipient}."
-    except Exception as e:
-        return f"Error: {e}"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -296,7 +274,6 @@ TOOLS = {
     "calculator": calculator,
     "currency_converter": currency_converter,
     "unit_converter": unit_converter,
-    "send_email": send_email,
 }
 
 TOOL_DESCRIPTIONS = """
@@ -304,7 +281,6 @@ Available tools:
 1. calculator(expression)        — Evaluates a math expression. Supports +, -, *, /, **, sqrt(), sin(), cos(), log(), pi, e.
 2. currency_converter(query)     — Converts between currencies. Input: "<amount> <FROM> to <TO>". Example: "100 USD to INR".
 3. unit_converter(query)         — Converts between units (length, weight, temp, etc.). Input: "<value> <from_unit> to <to_unit>".
-4. send_email(query)            — Sends an email. Input format: "recipient|subject|body". Example: "user@example.com|Hello|This is a test."
 """.strip()
 
 # ── System Prompt ────────────────────────────────────────────────────────────
