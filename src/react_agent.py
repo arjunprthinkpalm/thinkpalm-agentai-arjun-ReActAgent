@@ -11,7 +11,6 @@
 # --- Cell 2: Full ReAct Agent ---
 
 import re
-import json
 import time
 import math
 from groq import Groq
@@ -22,7 +21,7 @@ from groq import Groq
 try:
     from google.colab import userdata
     API_KEY = userdata.get("GROQ_API_KEY")
-except Exception:
+except (ImportError, Exception):
     import getpass
     API_KEY = getpass.getpass("Enter your Groq API key: ")
 
@@ -40,6 +39,7 @@ def calculator(expression: str) -> str:
     Supports basic arithmetic and math functions (sqrt, sin, cos, log, pi, etc.)."""
     safe_globals = {"__builtins__": {}}
     safe_locals = {
+        "math": math,
         "sqrt": math.sqrt, "sin": math.sin, "cos": math.cos,
         "tan": math.tan, "log": math.log, "log10": math.log10,
         "pi": math.pi, "e": math.e, "pow": pow, "abs": abs,
@@ -346,8 +346,8 @@ def run_react_agent(user_query: str, max_steps: int = 8, verbose: bool = True) -
                 print("=" * 60)
             return final
 
-        # Parse Action
-        action_match = re.search(r"Action:\s*(\w+)\((.+?)\)", llm_text)
+        # Parse Action (using greedy match to handle nested parentheses like calculator("sqrt(144)"))
+        action_match = re.search(r"Action:\s*(\w+)\((.+)\)", llm_text)
         if not action_match:
             if verbose:
                 print("⚠️  No action found, asking LLM to continue...")
