@@ -6,7 +6,7 @@
 # =============================================================================
 
 # --- Cell 1: Install dependency ---
-# !pip install -q groq
+!pip install -q groq
 
 # --- Cell 2: Full ReAct Agent ---
 
