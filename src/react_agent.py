@@ -6,7 +6,7 @@
 # =============================================================================
 
 # --- Cell 1: Install dependency ---
-!pip install -q groq
+# !pip install -q groq
 
 # --- Cell 2: Full ReAct Agent ---
 
@@ -17,19 +17,30 @@ import os
 from groq import Groq
 
 # ── Configure API Key ────────────────────────────────────────────────────────
-# Get your FREE key at: https://console.groq.com/keys
-# Option A: Environment Variable (best for local)
-API_KEY = os.environ.get("GROQ_API_KEY")
+# Priority: 1. Colab Secrets | 2. Environment Variables | 3. Manual Input
+API_KEY = None
+
+# Try Colab Secrets (only if running in Colab)
+if os.path.exists('/content'):
+    try:
+        import importlib
+        userdata = importlib.import_module('google.colab.userdata')
+        API_KEY = userdata.get("GROQ_API_KEY")
+    except (ImportError, ModuleNotFoundError):
+        pass
+
+# Try Environment Variable
+if not API_KEY:
+    API_KEY = os.environ.get("GROQ_API_KEY")
+
+# Fallback to manual input
+if not API_KEY:
+    import getpass
+    print("🔑 Groq API key not found in Colab Secrets or Environment Variables.")
+    API_KEY = getpass.getpass("Enter your Groq API key: ")
 
 if not API_KEY:
-    # Option B: Colab Secrets
-    try:
-        from google.colab import userdata
-        API_KEY = userdata.get("GROQ_API_KEY")
-    except (ImportError, Exception):
-        # Option C: Manual Input
-        import getpass
-        API_KEY = getpass.getpass("Enter your Groq API key: ")
+    raise ValueError("API Key is required to run the agent.")
 
 client = Groq(api_key=API_KEY)
 
@@ -253,6 +264,30 @@ def unit_converter(query: str) -> str:
         return f"Error: {e}"
 
 
+# ── Tool 4: Email Sender (Mock) ─────────────────────────────────────────────
+
+def send_email(query: str) -> str:
+    """Send an email. 
+    Input format: 'recipient|subject|body'
+    Example: 'boss@company.com|Report|The work is done.'
+    """
+    try:
+        parts = query.split("|")
+        if len(parts) != 3:
+            return "Error: Invalid format. Use 'recipient|subject|body'."
+        
+        recipient, subject, body = parts
+        # This is a mock implementation. In a real scenario, you'd use smtplib or an API.
+        print(f"\n[MOCK EMAIL SENT]")
+        print(f"To: {recipient}")
+        print(f"Subject: {subject}")
+        print(f"Body: {body}\n")
+        
+        return f"Successfully sent email to {recipient}."
+    except Exception as e:
+        return f"Error: {e}"
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 #                          TOOL REGISTRY & PROMPT
 # ══════════════════════════════════════════════════════════════════════════════
@@ -261,13 +296,15 @@ TOOLS = {
     "calculator": calculator,
     "currency_converter": currency_converter,
     "unit_converter": unit_converter,
+    "send_email": send_email,
 }
 
 TOOL_DESCRIPTIONS = """
 Available tools:
-1. calculator(expression)        — Evaluates a math expression. Supports +, -, *, /, **, sqrt(), sin(), cos(), log(), pi, e. Input: a math string like "25 * 48 + 130" or "sqrt(144)"
-2. currency_converter(query)     — Converts an amount between currencies. Input format: "<amount> <FROM> to <TO>". Example: "100 USD to INR". Supported: USD, EUR, GBP, INR, JPY, AUD, CAD, CHF, CNY, SGD, AED, KRW, BRL, MXN, ZAR
-3. unit_converter(query)         — Converts between units of measurement. Input format: "<value> <from_unit> to <to_unit>". Supports length (km, m, cm, mm, mile, yard, foot, inch), weight (kg, g, mg, lb, oz, ton), volume (l, ml, gallon, cup, pint), speed (m/s, km/h, mph, knot), area (sqm, sqft, acre, hectare), temperature (c, f, k). Example: "5 miles to km" or "100 f to c"
+1. calculator(expression)        — Evaluates a math expression. Supports +, -, *, /, **, sqrt(), sin(), cos(), log(), pi, e.
+2. currency_converter(query)     — Converts between currencies. Input: "<amount> <FROM> to <TO>". Example: "100 USD to INR".
+3. unit_converter(query)         — Converts between units (length, weight, temp, etc.). Input: "<value> <from_unit> to <to_unit>".
+4. send_email(query)            — Sends an email. Input format: "recipient|subject|body". Example: "user@example.com|Hello|This is a test."
 """.strip()
 
 # ── System Prompt ────────────────────────────────────────────────────────────
