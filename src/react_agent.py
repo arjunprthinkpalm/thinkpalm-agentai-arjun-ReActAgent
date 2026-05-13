@@ -6,24 +6,30 @@
 # =============================================================================
 
 # --- Cell 1: Install dependency ---
-# !pip install -q groq
+!pip install -q groq
 
 # --- Cell 2: Full ReAct Agent ---
 
 import re
 import time
 import math
+import os
 from groq import Groq
 
 # ── Configure API Key ────────────────────────────────────────────────────────
 # Get your FREE key at: https://console.groq.com/keys
-# Option A: Colab Secrets (recommended — add "GROQ_API_KEY" in Colab Secrets)
-try:
-    from google.colab import userdata
-    API_KEY = userdata.get("GROQ_API_KEY")
-except (ImportError, Exception):
-    import getpass
-    API_KEY = getpass.getpass("Enter your Groq API key: ")
+# Option A: Environment Variable (best for local)
+API_KEY = os.environ.get("GROQ_API_KEY")
+
+if not API_KEY:
+    # Option B: Colab Secrets
+    try:
+        from google.colab import userdata
+        API_KEY = userdata.get("GROQ_API_KEY")
+    except (ImportError, Exception):
+        # Option C: Manual Input
+        import getpass
+        API_KEY = getpass.getpass("Enter your Groq API key: ")
 
 client = Groq(api_key=API_KEY)
 
@@ -386,15 +392,20 @@ def run_react_agent(user_query: str, max_steps: int = 8, verbose: bool = True) -
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    # Example queries — uncomment any to test!
-    queries = [
-        "What is the square root of 144 plus 25 * 3?",
-        "Convert 500 USD to INR",
-        "How many kilometers is 26.2 miles?",
-        # "Convert 100 Fahrenheit to Celsius",
-        # "If I have 250 EUR, how much is that in Japanese Yen?",
-    ]
+    print("🤖 Welcome to the ReAct Agent! (Type 'exit' or 'quit' to stop)")
+    while True:
+        try:
+            query = input("\n💬 You: ").strip()
+            if query.lower() in ["exit", "quit"]:
+                print("Goodbye! 👋")
+                break
+            if not query:
+                continue
+            
+            run_react_agent(query)
+        except KeyboardInterrupt:
+            print("\nGoodbye! 👋")
+            break
+        except Exception as e:
+            print(f"❌ An error occurred: {e}")
 
-    for q in queries:
-        result = run_react_agent(q)
-        print("\n")
